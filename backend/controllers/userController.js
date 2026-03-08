@@ -29,7 +29,28 @@ const registerUser=expressAsyncHandler(async(req,res)=>{
     })
 })
 
+const authUser=expressAsyncHandler(async(req,res)=>{
+    const {email,password}=req.body;
+    const user=await User.findOne({email});
+    if(!user){
+        res.status(400);
+        throw new Error("User not found");
+    }
+    const isMatch=await user.matchPassword(password);
+    if(!isMatch){
+        res.status(400);
+        throw new Error("Invalid email or password");
+    }
+    res.json({
+        _id:user._id,
+        name:user.name,
+        email:user.email,
+        pic:user.pic,
+        token:generateToken(user._id),
+    })
+})
 
 
 
-export default registerUser;
+
+export default {registerUser, authUser};
