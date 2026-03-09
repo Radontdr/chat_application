@@ -1,6 +1,8 @@
 import React from "react";
 import { useState } from "react";
-import {VStack,Field,Input,InputGroup,InputElement,Button} from "@chakra-ui/react";
+import {VStack,Field,Input,InputGroup,Button} from "@chakra-ui/react";
+
+import { toaster } from "../ui/toaster.jsx"
 
 const SignUp=()=>{
     const [show,setShow]=useState(false);
@@ -8,13 +10,55 @@ const SignUp=()=>{
     const [email,setEmail]=useState("");
     const [password,setPassword]=useState("");
     const [confirmPassword,setConfirmPassword]=useState("");
-    const [pic,setPic]=useState("");
+    const [pics,setPics]=useState("");
+    const [loading,setLoading]=useState(false);
+
+    const postDetails=(pics)=>{
+        setLoading(true);
+        if(pics===undefined){
+            toaster.create({
+                title:"Please Select an Image",
+                description:"",
+                type:"error",
+                position:"top-right",
+            });
+            setLoading(false);
+            return;
+        }
+        if(pics.type==="image/jpeg" || pics.type==="image/png"){
+            const data=new FormData();
+            data.append("file",pics);
+            data.append("upload_preset","chat-app");
+            data.append("cloud_name","dqtfwcz7p");
+            fetch("https://api.cloudinary.com/v1_1/dqtfwcz7p/image/upload",{
+                method:"post",
+                body:data,
+            })
+            .then(res=>res.json())
+            .then(data=>{
+                setPics(data.secure_url.toString());
+                setLoading(false);
+            }).catch(err=>{
+                console.log(err);
+                setLoading(false);
+            });
+        }else{
+            toaster.create({
+                title:"Please Select an Image",
+                description:"Only jpeg and png images are allowed",
+                type:"error",
+                position:"top-right",
+            });
+            setLoading(false);
+        }
+    }
+
 
     const handleClick=()=>{
         setShow(!show);
     }
 
-    const postDetails=(pics)=>{};
+   
     const submitHandler=()=>{};
 
     return <VStack spacing='5px'>
@@ -76,7 +120,7 @@ const SignUp=()=>{
             onChange={(e)=>postDetails(e.target.files[0])}/>  
         </Field.Root>
 
-        <Button colorScheme='blue' width='100%' style={{marginTop:15}} onClick={submitHandler}>
+        <Button colorScheme='blue' width='100%' style={{marginTop:15}} onClick={submitHandler} loading={loading}>
             Sign Up
         </Button>
 

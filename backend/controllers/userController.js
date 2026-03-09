@@ -53,4 +53,4 @@ const authUser=expressAsyncHandler(async(req,res)=>{
 
 
 
-export default {registerUser, authUser};
+export  {registerUser, authUser};
