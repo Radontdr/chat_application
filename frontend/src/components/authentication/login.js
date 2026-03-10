@@ -1,16 +1,60 @@
 import React from "react";
 import { useState } from "react";
-import {VStack,Field,Input,InputGroup,InputElement,Button} from "@chakra-ui/react";
+import {VStack,Field,Input,InputGroup,Button} from "@chakra-ui/react";
+import { toaster } from "../ui/toaster.jsx"
+import axios from "axios";
+import {useHistory} from "react-router-dom";
+
 const Login = () => {
     const [show,setShow]=useState(false);
     const [email,setEmail]=useState("");
     const [password,setPassword]=useState("");
+    const [loading,setLoading]=useState(false);
+    const history=useHistory();
     
     const handleClick=()=>{
         setShow(!show);
     }
 
-    const submitHandler=()=>{};
+    const submitHandler=async()=>{
+        setLoading(true);
+        if(!email || !password){
+            toaster.create({
+                title:"Please Fill all the Fields",
+                description:"",
+                type:"error",
+                position:"top-right",
+            });
+            setLoading(false);
+            return;
+        }
+        try {
+            const config={
+                headers:{
+                    "Content-Type":"application/json",
+                }
+            };
+            const {data} = await axios.post("/api/user/login", {email, password}, config);
+            console.log(data);
+            toaster.create({
+                title:"Login Successful",
+                description:"",
+                type:"success",
+                position:"top-right",
+            });
+            localStorage.setItem("userInfo", JSON.stringify(data));
+            setLoading(false);
+            history.push("/chats");
+        } catch (error) {
+            toaster.create({
+                title:"Login Failed",
+                description:"An error occurred while logging in. Please try again.",
+                type:"error",
+                position:"top-right",
+            });
+            setLoading(false);
+        }
+    };
 
     return <VStack spacing='5px'>
         <Field.Root id='email' required>
@@ -37,7 +81,7 @@ const Login = () => {
             </InputGroup>           
         </Field.Root>
         
-        <Button colorScheme='blue' width='100%' style={{marginTop:15}} onClick={submitHandler}>
+        <Button colorScheme='blue' width='100%' style={{marginTop:15}} onClick={submitHandler} loading={loading}>
             Log In
         </Button>
 

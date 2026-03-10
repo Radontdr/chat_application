@@ -3,6 +3,8 @@ import { useState } from "react";
 import {VStack,Field,Input,InputGroup,Button} from "@chakra-ui/react";
 
 import { toaster } from "../ui/toaster.jsx"
+import axios from "axios";
+import {useHistory} from "react-router-dom";
 
 const SignUp=()=>{
     const [show,setShow]=useState(false);
@@ -12,7 +14,7 @@ const SignUp=()=>{
     const [confirmPassword,setConfirmPassword]=useState("");
     const [pics,setPics]=useState("");
     const [loading,setLoading]=useState(false);
-
+    const history=useHistory();
     const postDetails=(pics)=>{
         setLoading(true);
         if(pics===undefined){
@@ -28,7 +30,7 @@ const SignUp=()=>{
         if(pics.type==="image/jpeg" || pics.type==="image/png"){
             const data=new FormData();
             data.append("file",pics);
-            data.append("upload_preset","chat-app");
+            data.append("upload_preset","chat_application");
             data.append("cloud_name","dqtfwcz7p");
             fetch("https://api.cloudinary.com/v1_1/dqtfwcz7p/image/upload",{
                 method:"post",
@@ -36,6 +38,7 @@ const SignUp=()=>{
             })
             .then(res=>res.json())
             .then(data=>{
+                console.log(data.secure_url.toString());
                 setPics(data.secure_url.toString());
                 setLoading(false);
             }).catch(err=>{
@@ -59,7 +62,55 @@ const SignUp=()=>{
     }
 
    
-    const submitHandler=()=>{};
+    const submitHandler=()=>{
+        setLoading(true);
+            if(!name || !email || !password || !confirmPassword){
+                toaster.create({
+                    title:"Please Fill All Fields",
+                    description:"",
+                    type:"error",
+                    position:"top-right",
+                });
+                setLoading(false);
+                return;
+            }
+            if(password!==confirmPassword){
+                toaster.create({
+                    title:"Passwords Do Not Match",
+                    description:"",
+                    type:"error",
+                    position:"top-right",
+                });
+            }
+            try {
+                const config={
+                    headers:{
+                        "Content-Type":"application/json", 
+                    }
+                }
+                const {data}=axios.post("/api/user",{name,email,password,pics},config);
+                console.log(data);
+                toaster.create({
+                    title:"Registration Successful",
+                    description:"",
+                    type:"success",
+                    position:"top-right",
+                });
+                localStorage.setItem("userInfo",JSON.stringify(data));
+                setLoading(false);
+                history.push("/chats");
+                
+            } catch (error) {
+                toaster.create({
+                    title:"Registration Failed",
+                    description:"An error occurred while registering. Please try again.",
+                    type:"error",
+                    position:"top-right",
+                });
+                setLoading(false);
+            }
+            
+    };
 
     return <VStack spacing='5px'>
         <Field.Root id='first-name' required>
