@@ -4,17 +4,18 @@ import './index.css';
 import App from './App';
 import { ChakraProvider,defaultSystem } from '@chakra-ui/react';
 import { BrowserRouter } from 'react-router-dom';
-
+import chatProvider from './context/chatContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
-  <React.StrictMode>
+    <chatProvider> 
     <BrowserRouter>
       <ChakraProvider value={defaultSystem}>
         <App />
       </ChakraProvider>
     </BrowserRouter>
+    </chatProvider>
 
-  </React.StrictMode>
+  
 );
 

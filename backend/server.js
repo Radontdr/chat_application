@@ -6,6 +6,7 @@ import chatRoutes from './routes/chatRoutes.js';
 import cors from 'cors';
 import { errorHandler,notFound } from './middlewares/errorhandler.js';
 
+
 dotenv.config();
 connectDB();
 
