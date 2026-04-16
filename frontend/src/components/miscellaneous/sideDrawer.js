@@ -1,31 +1,42 @@
 import React from "react";
 import { useState } from "react";
-import { Box,Tooltip,Button,Text, Drawer, DrawerBody,Input} from "@chakra-ui/react";
-import { Menu,MenuButton,Divider,MenuList,MenuItem} from "@chakra-ui/react";
-import { Drawer,DrawerOverlay,DrawerHeader,DrawerContent } from "@chakra-ui/react";
-import { BellIcon } from "@chakra-ui/icons";
-import { ChevronDownIcon } from "@chakra-ui/icons";
+import { Box, Tooltip, Button, Text, Input } from "@chakra-ui/react";
+import {
+    DrawerRoot,
+    DrawerBody,
+    DrawerOverlay,
+    DrawerHeader,
+    DrawerContent,
+    DrawerBackdrop,
+} from "@chakra-ui/react";
+import {
+    MenuRoot,
+    MenuTrigger,
+    MenuContent,
+    MenuItem,
+} from "@chakra-ui/react";
+import { LuBell, LuChevronDown } from "react-icons/lu";
 import { Avatar } from "@chakra-ui/react";
+import { Separator } from "@chakra-ui/react";
 import { ChatState } from "../../context/chatContext";
 import ProfileModal from "./profileModal";
 import { useHistory } from "react-router-dom";
-import { useDisclosure } from "@chakra-ui/hooks";
-import { Toaster } from "@chakra-ui/react";
-import {ChatLoading} from "../chatLoading";
+import { useDisclosure } from "@chakra-ui/react";
+import { toaster } from "../ui/toaster.jsx";
+import ChatLoading from "../chatLoading";
 import axios from "axios";
-import {Spinner} from 'chakra-ui/spinner';
+import { Spinner } from '@chakra-ui/react';
+import UserListItem from "../userAvatar/UserListItem.js";
 
-
-import { set } from "mongoose";
 const SideDrawer = () => {
     const [search,setSearch]=useState("");
     const [searchResult,setSearchResult]=useState([]);
     const [loading,setLoading]=useState(false);
     const [loadingChat,setLoadingChat]=useState(false);
     const {user,selectedChat,setSelectedChat,chats,setChats}=ChatState();
-    const toaster = Toaster();
-    const {isOpen,onOpen,onClose}=useDisclosure();
+    const {open, onOpen, onClose} = useDisclosure();
     const history=useHistory();
+
     const logoutHandler=()=>{
         localStorage.removeItem("userInfo");
         history.push("/");
@@ -33,11 +44,10 @@ const SideDrawer = () => {
 
     const handleSearch=async()=>{
         if(!search){
-            toaster({
+            toaster.create({
                 title: "Please enter something in search",
-                status: "warning",
+                type: "warning",
                 duration: 5000,
-                isClosable: true,
                 position: "top-left",
             });
             return;
@@ -54,11 +64,10 @@ const SideDrawer = () => {
             setLoading(false);
             setSearchResult(data);
         } catch (error) {
-            toaster({
+            toaster.create({
                 title: "Error occurred while searching users",
-                status: "error",
+                type: "error",
                 duration: 5000,
-                isClosable: true,
                 position: "top-left",
             });
         } 
@@ -74,16 +83,16 @@ const SideDrawer = () => {
                 },
             };
             const {data}=await axios.post("/api/chat",{userId},config);
+         
             if(!chats.find((c)=>c._id===data._id)) setChats([data,...chats]);
             setSelectedChat(data);
             setLoadingChat(false);
-            onClose(); // close the drawer after accessing the chat
+            onClose();
         } catch (error) {
-            toaster({
+            toaster.create({
                 title: "Error occurred while accessing chat",
-                status: "error",
+                type: "error",
                 duration: 5000,
-                isClosable: true,
                 position: "top-left",
             });
         }
@@ -99,7 +108,7 @@ const SideDrawer = () => {
         p="5px 10px 5px 10px"
         borderWidth="5px"
         >
-            <Tooltip label="Search Users to chat" hasArrow placement="bottom-end">
+            <Tooltip content="Search Users to chat" placement="bottom-end">
                 <Button variant="ghost" onClick={onOpen}>
                     <i className="fa-solid fa-magnifying-glass"></i>
                     <Text display={{base:"none",md:"flex"}} px={4}>Search User</Text>
@@ -109,26 +118,30 @@ const SideDrawer = () => {
                 Talk-A-Tive
             </Text>
             <div>
-                <Menu>
-                    <MenuButton p={1}>
-                        <BellIcon fontSize="2xl" m={1}/>
-                    </MenuButton>
-                </Menu>
-                {/*<MenuList></MenuList>*/}
-                <Menu>
-                    <MenuButton as={Button} rightIcon={<ChevronDownIcon/>}>
-                        <Avatar size="sm" cursor="pointer" name={user?.name} src={user?.pic}/>
-                    </MenuButton>
-                    <MenuList>
+                <MenuRoot>
+                    <MenuTrigger asChild>
+                        <Button variant="ghost" p={1}>
+                            <LuBell fontSize="2xl" m={1}/>
+                        </Button>
+                    </MenuTrigger>
+                </MenuRoot>
+                <MenuRoot>
+                    <MenuTrigger asChild>
+                        <Button variant="ghost">
+                            <Avatar size="sm" cursor="pointer" name={user?.name} src={user?.pic}/>
+                            <LuChevronDown/>
+                        </Button>
+                    </MenuTrigger>
+                    <MenuContent>
                         <ProfileModal user={user}>
-                            <MenuItem>My Profile</MenuItem>
+                            <MenuItem value="profile">My Profile</MenuItem>
                         </ProfileModal>
-                        <Divider/>
-                        <MenuItem onClick={logoutHandler}>Logout</MenuItem>
-                    </MenuList>
-                </Menu>
-                <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
-                    <DrawerOverlay />
+                        <Separator/>
+                        <MenuItem value="logout" onClick={logoutHandler}>Logout</MenuItem>
+                    </MenuContent>
+                </MenuRoot>
+                <DrawerRoot open={open} placement="start" onOpenChange={(e) => e.open ? onOpen() : onClose()}>
+                    <DrawerBackdrop />
                     <DrawerContent>
                         <DrawerHeader borderBottomWidth="1px">Search Users</DrawerHeader>
                         <DrawerBody>
@@ -137,7 +150,7 @@ const SideDrawer = () => {
                                 placeholder="Search by name or email" 
                                 mr={2} value={search} 
                                 onChange={(e)=>setSearch(e.target.value)}/>
-                                <Button onClick={handleSearch} >Go</Button>
+                                <Button onClick={handleSearch}>Go</Button>
                             </Box>
                             {loading ? (
                                 <ChatLoading/>
@@ -149,11 +162,10 @@ const SideDrawer = () => {
                                     handleFunction={()=>accessChat(user._id)}/>
                                 ))
                             )}
-                            {loadingChat  && <Spinner ml="auto" display="flex"/>}
+                            {loadingChat && <Spinner ml="auto" display="flex"/>}
                         </DrawerBody>
                     </DrawerContent>
-                    
-                </Drawer>
+                </DrawerRoot>
             </div>
         </Box>
     )

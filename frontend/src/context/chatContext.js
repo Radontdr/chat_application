@@ -1,29 +1,28 @@
-import { createContext,useContext } from 'react';
-import { useState,useEffect } from 'react';
-import {useHistory} from 'react-router-dom'
+import { createContext, useContext } from 'react';
+import { useState, useEffect } from 'react';
 
 const ChatContext = createContext();
-const ChatProvider = ({children})=>{
-    const [user,setUser]=useState();
-    const [selectedChat,setSelectedChat]=useState();
-    const [chats,setChats]=useState([]);
-    const history=useHistory();
 
-    useEffect(()=>{
-        const userInfo=JSON.parse(localStorage.getItem('userInfo'));
+const ChatProvider = ({ children }) => {
+    const [user, setUser] = useState();
+    const [selectedChat, setSelectedChat] = useState();
+    const [chats, setChats] = useState([]);
+
+    useEffect(() => {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'));
         setUser(userInfo);
-        if(!userInfo){
-            history.push('/login');
-        }
-    },[history]);
+    }, []);
 
     return (
         <ChatContext.Provider value={{ user, setUser, selectedChat, setSelectedChat, chats, setChats }}>
             {children}
         </ChatContext.Provider>
-    )
-}
-const ChatState=()=>{
+    );
+};
+
+const ChatState = () => {
     return useContext(ChatContext);
-}
-export { ChatProvider, ChatState };
+};
+
+export { ChatState };
+export default ChatProvider;

@@ -62,7 +62,7 @@ const SignUp=()=>{
     }
 
    
-    const submitHandler=()=>{
+    const submitHandler=async()=>{
         setLoading(true);
             if(!name || !email || !password || !confirmPassword){
                 toaster.create({
@@ -88,7 +88,7 @@ const SignUp=()=>{
                         "Content-Type":"application/json", 
                     }
                 }
-                const {data}=axios.post("/api/user",{name,email,password,pics},config);
+                const {data}=await axios.post("/api/user",{name,email,password,pics},config);
                 console.log(data);
                 toaster.create({
                     title:"Registration Successful",
@@ -101,9 +101,10 @@ const SignUp=()=>{
                 history.push("/chats");
                 
             } catch (error) {
+                console.log(error.response);
                 toaster.create({
                     title:"Registration Failed",
-                    description:"An error occurred while registering. Please try again.",
+                    description:error.response?.data?.message || error.message,
                     type:"error",
                     position:"top-right",
                 });
